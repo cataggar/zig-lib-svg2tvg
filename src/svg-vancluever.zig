@@ -4330,7 +4330,7 @@ test "comsumeRParen" {
 
 /// For testing only.
 fn testError(p: *Parser, expected: [:0]const u8) !void {
-    var buf = [_:0]u8{0} ** 256;
+    var buf: [256:0]u8 = @splat(0);
     var stream = io.fixedBufferStream(&buf);
     const writer = stream.writer();
     try p.fmtErr(writer);

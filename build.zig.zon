@@ -5,12 +5,12 @@
     .minimum_zig_version = "0.16.0",
     .dependencies = .{
         .xml = .{
-            .url = "git+https://github.com/ianprime0509/zig-xml#b97f2ab4868ae3cac9902b33a40d3f31d2df739d",
-            .hash = "xml-0.2.0-ZTbP3yI6AgB9Rpd2hQrueO63ib0Bm6mQiL_WB1t7JAmP",
+            .url = "git+https://github.com/david-vanderson/zig-xml#906c1b9b8d301e5f87c4b5c238ad9dba87aaec8a",
+            .hash = "xml-0.2.0-ZTbP3y46AgBiWIBTa-mSzjgPc_1F5LYhw0PxifXB7XHg",
         },
         .z2d = .{
-            .url = "git+https://github.com/vancluever/z2d#2f661fb5120f65e875bf6f37d082674c08858c7b",
-            .hash = "z2d-0.11.1-pre-j5P_HtbzDwADWjqO2TdR36XPyD-GdJRwRywnnhjalqej",
+            .url = "git+https://github.com/david-vanderson/z2d#02ccc834d2aafba44e0d343f174caec56d4c1368",
+            .hash = "z2d-0.12.0-j5P_Hlw6EQDTTLlS9jiguNUgCXPwwh617bkh4xnfHGD6",
         },
     },
     .paths = .{

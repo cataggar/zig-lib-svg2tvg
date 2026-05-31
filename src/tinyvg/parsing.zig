@@ -631,7 +631,7 @@ fn convertStyleType(value: u2) !StyleType {
 
 fn MapZeroToMax(comptime T: type) type {
     const info = @typeInfo(T).int;
-    return std.meta.Int(.unsigned, info.bits + 1);
+    return @Int(.unsigned, info.bits + 1);
 }
 fn mapZeroToMax(value: anytype) MapZeroToMax(@TypeOf(value)) {
     return if (value == 0)
