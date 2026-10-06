@@ -51,7 +51,7 @@ const std = @import("std");
 const debug = @import("std").debug;
 const fmt = @import("std").fmt;
 const heap = @import("std").heap;
-const io = @import("std").io;
+const io = @import("std").Io;
 const log = @import("std").log;
 const math = @import("std").math;
 const mem = @import("std").mem;
@@ -100,7 +100,7 @@ pub const Path = struct {
     }
 
     fn _parse(self: *Path, parser: *Parser) !void {
-        var result = std.ArrayList(Node).init(self.arena.allocator());
+        var result = std.array_list.Managed(Node).init(self.arena.allocator());
         errdefer result.deinit();
 
         parser.consumeWhitespace();
@@ -226,7 +226,7 @@ pub const Path = struct {
             var start = parser.pos;
             var relative: bool = undefined;
             var pos: Parser.Pos = undefined;
-            var args = std.ArrayList(CoordinatePair).init(alloc);
+            var args = std.array_list.Managed(CoordinatePair).init(alloc);
             errdefer args.deinit();
 
             switch (parser.data[parser.pos]) {
@@ -318,7 +318,7 @@ pub const Path = struct {
             var start = parser.pos;
             var relative: bool = undefined;
             var pos: Parser.Pos = undefined;
-            var args = std.ArrayList(CoordinatePair).init(alloc);
+            var args = std.array_list.Managed(CoordinatePair).init(alloc);
             errdefer args.deinit();
 
             switch (parser.data[parser.pos]) {
@@ -384,7 +384,7 @@ pub const Path = struct {
             var start = parser.pos;
             var relative: bool = undefined;
             var pos: Parser.Pos = undefined;
-            var args = std.ArrayList(Number).init(alloc);
+            var args = std.array_list.Managed(Number).init(alloc);
             errdefer args.deinit();
 
             switch (parser.data[parser.pos]) {
@@ -448,7 +448,7 @@ pub const Path = struct {
             var start = parser.pos;
             var relative: bool = undefined;
             var pos: Parser.Pos = undefined;
-            var args = std.ArrayList(Number).init(alloc);
+            var args = std.array_list.Managed(Number).init(alloc);
             errdefer args.deinit();
 
             switch (parser.data[parser.pos]) {
@@ -512,7 +512,7 @@ pub const Path = struct {
             var start = parser.pos;
             var relative: bool = undefined;
             var pos: Parser.Pos = undefined;
-            var args = std.ArrayList(CurveToArgument).init(alloc);
+            var args = std.array_list.Managed(CurveToArgument).init(alloc);
             errdefer args.deinit();
 
             switch (parser.data[parser.pos]) {
@@ -628,7 +628,7 @@ pub const Path = struct {
             var start = parser.pos;
             var relative: bool = undefined;
             var pos: Parser.Pos = undefined;
-            var args = std.ArrayList(SmoothCurveToArgument).init(alloc);
+            var args = std.array_list.Managed(SmoothCurveToArgument).init(alloc);
             errdefer args.deinit();
 
             switch (parser.data[parser.pos]) {
@@ -731,7 +731,7 @@ pub const Path = struct {
             var start = parser.pos;
             var relative: bool = undefined;
             var pos: Parser.Pos = undefined;
-            var args = std.ArrayList(QuadraticBezierCurveToArgument).init(alloc);
+            var args = std.array_list.Managed(QuadraticBezierCurveToArgument).init(alloc);
             errdefer args.deinit();
 
             switch (parser.data[parser.pos]) {
@@ -834,7 +834,7 @@ pub const Path = struct {
             var start = parser.pos;
             var relative: bool = undefined;
             var pos: Parser.Pos = undefined;
-            var args = std.ArrayList(CoordinatePair).init(alloc);
+            var args = std.array_list.Managed(CoordinatePair).init(alloc);
             errdefer args.deinit();
 
             switch (parser.data[parser.pos]) {
@@ -900,7 +900,7 @@ pub const Path = struct {
             var start = parser.pos;
             var relative: bool = undefined;
             var pos: Parser.Pos = undefined;
-            var args = std.ArrayList(EllipticalArcArgument).init(alloc);
+            var args = std.array_list.Managed(EllipticalArcArgument).init(alloc);
             errdefer args.deinit();
 
             switch (parser.data[parser.pos]) {
@@ -2077,8 +2077,7 @@ pub const Parser = struct {
     /// Prints the error to the supplied writer.
     pub fn fmtErr(self: *Parser, writer: anytype) !void {
         if (self.err) |e| {
-            try fmt.format(
-                writer,
+            try writer.print(
                 "at pos {d}: expected {s}, found ",
                 .{
                     if (e.pos.start < self.data.len) e.pos.start + 1 else self.data.len,
@@ -2086,9 +2085,9 @@ pub const Parser = struct {
                 },
             );
             if (e.pos.start < self.data.len) {
-                try fmt.format(writer, "'{s}'\n", .{self.data[e.pos.start .. e.pos.end + 1]});
+                try writer.print("'{s}'\n", .{self.data[e.pos.start .. e.pos.end + 1]});
             } else {
-                try fmt.format(writer, "end of data\n", .{});
+                try writer.writeAll("end of data\n");
             }
         }
     }
@@ -4330,10 +4329,9 @@ test "comsumeRParen" {
 
 /// For testing only.
 fn testError(p: *Parser, expected: [:0]const u8) !void {
-    var buf = [_:0]u8{0} ** 256;
-    var stream = io.fixedBufferStream(&buf);
-    const writer = stream.writer();
-    try p.fmtErr(writer);
+    var buf: [256:0]u8 = @splat(0);
+    var writer: io.Writer = .fixed(&buf);
+    try p.fmtErr(&writer);
     try testing.expectEqualSentinel(
         u8,
         0,

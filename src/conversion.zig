@@ -87,21 +87,20 @@ const InheritableProperties = struct {
     // filter: ?SvgColor = null, // Filter effects (blur, drop shadow, etc.)
     pub fn override(self: *const InheritableProperties, over: InheritableProperties) InheritableProperties {
         var ret = self.*;
-        inline for (@typeInfo(InheritableProperties).@"struct".fields) |f| {
-            if (@field(over, f.name)) |fval| {
-                @field(ret, f.name) = fval;
+        inline for (@typeInfo(InheritableProperties).@"struct".field_names) |field_name| {
+            if (@field(over, field_name)) |fval| {
+                @field(ret, field_name) = fval;
             }
         }
         return ret;
     }
     pub fn override_from(self: *@This(), t: anytype) void {
         const T = @TypeOf(t);
-        inline for (@typeInfo(InheritableProperties).@"struct".fields) |f| {
-            if (comptime utils.has_field(T, f.name)) {
-                // @compileLog(T, f.name);
-                if (comptime f.type == @TypeOf(@field(t, f.name))) {
-                    if (@field(t, f.name)) |fval| {
-                        @field(self, f.name) = fval;
+        inline for (@typeInfo(InheritableProperties).@"struct".field_names) |field_name| {
+            if (comptime utils.has_field(T, field_name)) {
+                if (comptime @FieldType(InheritableProperties, field_name) == @TypeOf(@field(t, field_name))) {
+                    if (@field(t, field_name)) |fval| {
+                        @field(self, field_name) = fval;
                     }
                 }
             }

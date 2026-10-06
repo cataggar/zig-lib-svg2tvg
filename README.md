@@ -1,6 +1,6 @@
 # svg2tvg - convert svg to tvg and render tvg to image!
 
-- written in zig 0.16.0
+- written in zig 0.17.0
 - dependency name: svg2tvg, module name: svg2tvg
 
 ## status / background
@@ -17,6 +17,11 @@
 - renderStream(...) - render tvg to an image
 - RenderOptions - Options for rendering
 
+## tests
+
+`zig build test` runs the existing TinyVG and SVG parser fixtures, plus a
+conversion-and-rendering test for filled and stroked SVG paths.
+
 ## usage:
 
 ```zig
@@ -28,10 +33,10 @@ test "convert to tvg and render" {
     const alloc = arena.allocator();
 
     const Wrapper = struct {
-        width: i64,
-        height: i64,
+        width: isize,
+        height: isize,
         img: *MyImage,
-        pub fn setPixel(self: *@This(), x: i64, y: i64, color: [4]u8) void {
+        pub fn setPixel(self: *@This(), x: isize, y: isize, color: [4]u8) void {
             const pix: MyPixel = .init_from_u8_slice(&color);
             self.img.set_pixel(@intCast(x), @intCast(y), pix);
         }
@@ -42,17 +47,17 @@ test "convert to tvg and render" {
     var myImage = try MyImageType.init(alloc, width_and_height, width_and_height);
     const my_svg_icon_data = icons.svg.feather.activity;
 
-    var w = std.ArrayList(u8).init(alloc);
-    try svg2tvg.tvg_from_svg(alloc, w.writer(), svg_bytes);
+    const tvg_bytes = try svg2tvg.tvg_from_svg(alloc, my_svg_icon_data, .{});
+    defer alloc.free(tvg_bytes);
 
     var image_wrapper = Wrapper{
-        .img = img,
-        .width = @intCast(img.get_width()),
-        .height = @intCast(img.get_height()),
+        .img = &myImage,
+        .width = @intCast(myImage.get_width()),
+        .height = @intCast(myImage.get_height()),
     };
 
-    var fb = std.io.fixedBufferStream(w.items);
-    try svg2tvg.renderStream(alloc, &image_wrapper, fb.reader(), .{}); <-- you can use options here
+    var reader: std.Io.Reader = .fixed(tvg_bytes);
+    try svg2tvg.renderStream(alloc, &image_wrapper, &reader, .{});
 
     ...
 }
